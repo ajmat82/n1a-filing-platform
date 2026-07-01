@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output (regenerated on deploy via `npx tsc`)
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
