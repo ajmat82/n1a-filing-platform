@@ -3,447 +3,516 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>N-1A Filing Platform — ETF Prospectus Builder</title>
+<title>N-1A Filing Platform — ETF Filing Suite</title>
 <style>
   :root{
-    --bg:#f4f6f9; --card:#ffffff; --ink:#1f2733; --muted:#66707d;
-    --line:#e3e8ef; --brand:#1f5fbf; --brand-d:#174a99;
-    --err:#c0392b; --err-bg:#fdecea; --warn:#a06a00; --warn-bg:#fff6e0;
-    --ok:#1e7e46; --ok-bg:#e8f6ee; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
+    --bg:#f4f6f9; --card:#fff; --ink:#1f2733; --muted:#66707d; --line:#e3e8ef;
+    --brand:#1f5fbf; --brand-d:#174a99; --err:#c0392b; --err-bg:#fdecea;
+    --warn:#a06a00; --warn-bg:#fff6e0; --ok:#1e7e46; --ok-bg:#e8f6ee;
+    --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
-  header{background:linear-gradient(135deg,#1f5fbf,#153f80);color:#fff;padding:22px 28px;}
-  header h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px;}
-  header p{margin:4px 0 0;opacity:.85;font-size:13px;}
-  .wrap{display:grid;grid-template-columns:1fr 340px;gap:24px;max-width:1200px;margin:24px auto;padding:0 24px;align-items:start;}
-  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;}
-  .card > h2{margin:0;padding:14px 18px;font-size:14px;font-weight:650;background:#fbfcfe;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;}
-  .card > h2 .tag{font-weight:500;font-size:11px;color:var(--muted);background:#eef2f7;padding:2px 7px;border-radius:20px;}
-  .body{padding:16px 18px;}
-  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 5px;text-transform:uppercase;letter-spacing:.3px;}
-  input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,95,191,.12);}
-  textarea{resize:vertical;min-height:64px;}
-  .row{display:grid;gap:12px;margin-bottom:14px;}
-  .row.two{grid-template-columns:1fr 1fr}
-  .row.three{grid-template-columns:1fr 1fr 1fr}
-  .row.four{grid-template-columns:repeat(4,1fr)}
-  .field{margin-bottom:14px;}
-  .hint{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-top:4px;}
-  .btn{border:none;border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;transition:background .15s;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(135deg,#1f5fbf,#153f80);color:#fff;padding:20px 28px}
+  header h1{margin:0;font-size:20px;font-weight:650}
+  header p{margin:4px 0 0;opacity:.85;font-size:13px}
+  .ctxbar{background:#0f2f63;color:#fff;padding:12px 28px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+  .ctxbar .field{margin:0}
+  .ctxbar label{color:#b9cbe8}
+  .ctxbar input,.ctxbar select{min-width:150px}
+  .tabs{display:flex;gap:2px;padding:0 20px;background:#e8edf4;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tab{padding:12px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent}
+  .tab:hover{color:var(--brand-d)}
+  .tab.active{color:var(--brand-d);border-bottom-color:var(--brand);background:var(--bg)}
+  .tab .badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;font-size:11px;border-radius:10px;background:#cbd3dd;color:#fff}
+  .tab .badge.err{background:var(--err)} .tab .badge.ok{background:var(--ok)}
+  .wrap{display:grid;grid-template-columns:1fr 340px;gap:24px;max-width:1240px;margin:22px auto;padding:0 24px;align-items:start}
+  @media(max-width:920px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+  .card>h2{margin:0;padding:13px 18px;font-size:14px;font-weight:650;background:#fbfcfe;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .card>h2 .tag{font-weight:500;font-size:11px;color:var(--muted);background:#eef2f7;padding:2px 7px;border-radius:20px}
+  .body{padding:16px 18px}
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 5px;text-transform:uppercase;letter-spacing:.3px}
+  input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,95,191,.12)}
+  textarea{resize:vertical;min-height:58px}
+  .row{display:grid;gap:12px;margin-bottom:14px}
+  .row.two{grid-template-columns:1fr 1fr}.row.three{grid-template-columns:1fr 1fr 1fr}
+  .field{margin-bottom:14px}
+  .hint{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-top:4px}
+  .btn{border:none;border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff}
   .btn:hover{background:var(--brand-d)}
-  .btn.ghost{background:#eef2f7;color:var(--brand-d)}
-  .btn.ghost:hover{background:#e1e8f2}
-  .btn.mini{padding:5px 10px;font-size:12px;}
-  .btn.danger{background:transparent;color:var(--err);padding:4px 8px;font-size:18px;line-height:1;}
-  .btn.danger:hover{background:var(--err-bg)}
-  .multi-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
-  .multi-item input,.multi-item textarea{flex:1}
-  .subcard{border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;background:#fbfcfe;position:relative;}
-  .subcard .rm{position:absolute;top:8px;right:8px;}
-  table.perf{width:100%;border-collapse:collapse;}
-  table.perf th{font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px;font-weight:600;}
-  table.perf td{padding:3px 4px;}
-  table.perf td:first-child{font-weight:600;font-size:13px;color:var(--ink);white-space:nowrap;padding-right:12px;}
-  .check{display:flex;align-items:center;gap:8px;}
-  .check input{width:auto;}
-  .check label{margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:500;}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px;}
-  /* validation panel */
-  .panel{position:sticky;top:24px;}
-  .panel .card{margin-bottom:14px}
-  .status{display:flex;align-items:center;gap:10px;padding:14px 18px;font-weight:650;font-size:14px;}
-  .status .dot{width:12px;height:12px;border-radius:50%;background:#cbd3dd;flex:none;}
-  .status.ok .dot{background:var(--ok)} .status.ok{color:var(--ok)}
-  .status.err .dot{background:var(--err)} .status.err{color:var(--err)}
-  .counts{display:flex;gap:8px;padding:0 18px 12px;}
-  .pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;}
-  .pill.e{background:var(--err-bg);color:var(--err)}
-  .pill.w{background:var(--warn-bg);color:var(--warn)}
-  .issues{max-height:52vh;overflow:auto;padding:0 12px 12px;}
-  .issue{border-left:3px solid;padding:8px 10px;margin:8px 0;border-radius:0 6px 6px 0;font-size:12.5px;line-height:1.4;}
-  .issue.e{border-color:var(--err);background:var(--err-bg);}
-  .issue.w{border-color:var(--warn);background:var(--warn-bg);}
-  .issue .code{font-family:ui-monospace,Menlo,monospace;font-size:10px;opacity:.7;display:block;margin-bottom:2px;}
-  .clean{padding:16px 18px;color:var(--ok);font-size:13px;}
-  #output{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#0f1b2d;color:#d7e3f4;padding:14px;border-radius:8px;max-height:300px;overflow:auto;margin:0 18px 18px;display:none;}
-  .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-1px;margin-right:6px}
-  @keyframes s{to{transform:rotate(360deg)}}
+  .btn.ghost{background:#eef2f7;color:var(--brand-d)}.btn.ghost:hover{background:#e1e8f2}
+  .btn.mini{padding:5px 10px;font-size:12px}
+  .btn.danger{background:transparent;color:var(--err);padding:4px 8px;font-size:18px;line-height:1}.btn.danger:hover{background:var(--err-bg)}
+  .multi-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.multi-item input,.multi-item textarea,.multi-item select{flex:1}
+  .subcard{border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;background:#fbfcfe;position:relative}
+  .subcard .rm{position:absolute;top:8px;right:8px}
+  table.grid{width:100%;border-collapse:collapse}
+  table.grid th{font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px}
+  table.grid td{padding:3px 4px}
+  .check{display:flex;align-items:center;gap:8px}.check input{width:auto}.check label{margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:500}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px}
+  .panel{position:sticky;top:20px}
+  .status{display:flex;align-items:center;gap:10px;padding:14px 18px;font-weight:650;font-size:14px}
+  .status .dot{width:12px;height:12px;border-radius:50%;background:#cbd3dd;flex:none}
+  .status.ok .dot{background:var(--ok)}.status.ok{color:var(--ok)}
+  .status.err .dot{background:var(--err)}.status.err{color:var(--err)}
+  .counts{display:flex;gap:8px;padding:0 18px 12px}
+  .pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px}
+  .pill.e{background:var(--err-bg);color:var(--err)}.pill.w{background:var(--warn-bg);color:var(--warn)}
+  .issues{max-height:56vh;overflow:auto;padding:0 12px 12px}
+  .issue{border-left:3px solid;padding:8px 10px;margin:8px 0;border-radius:0 6px 6px 0;font-size:12.5px;line-height:1.4}
+  .issue.e{border-color:var(--err);background:var(--err-bg)}.issue.w{border-color:var(--warn);background:var(--warn-bg)}
+  .issue .code{font-family:ui-monospace,Menlo,monospace;font-size:10px;opacity:.7;display:block;margin-bottom:2px}
+  .clean{padding:16px 18px;color:var(--ok);font-size:13px}
+  #output{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#0f1b2d;color:#d7e3f4;padding:14px;border-radius:8px;max-height:280px;overflow:auto;margin:0 18px 18px;display:none}
+  .formpanel{display:none}.formpanel.active{display:block}
+  .note{font-size:12px;color:var(--muted);background:#f0f4f9;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px}
 </style>
 </head>
 <body>
 <header>
-  <h1>N-1A Filing Platform</h1>
-  <p>SEC Form N-1A prospectus builder for ETFs — real-time deficiency validation &amp; iXBRL generation</p>
+  <h1>N-1A Filing Platform · ETF Filing Suite</h1>
+  <p>Full registration package (N-1A Parts A/B/C), submission lifecycle, and periodic reports (N-CEN, N-PORT) — with real-time SEC deficiency validation</p>
 </header>
 
+<!-- Shared fund context -->
+<div class="ctxbar">
+  <div class="field"><label>Fund / Registrant Name</label><input id="fundName" value="Acme Growth ETF Trust"></div>
+  <div class="field"><label>CIK</label><input id="cik" value="0001234567"></div>
+  <div class="field"><label>Ticker</label><input id="ticker" value="ACGX"></div>
+  <div class="field"><label>Prospectus / Report Date</label><input id="prospectusDate" type="date"></div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
 <div class="wrap">
-  <!-- ============ FORM COLUMN ============ -->
   <div>
-    <!-- Fund Basic Info -->
-    <section class="card">
-      <h2>Fund Basic Information <span class="tag">Item 2 / 9</span></h2>
-      <div class="body">
+    <!-- ============ PROSPECTUS (PART A) ============ -->
+    <div class="formpanel" data-form="prospectus">
+      <section class="card"><h2>Submission Type <span class="tag">EDGAR lifecycle</span></h2><div class="body">
         <div class="row two">
-          <div class="field"><label>Fund Name *</label><input id="fundName" placeholder="e.g., Acme Growth ETF" value="Acme Growth ETF"></div>
-          <div class="field"><label>Ticker</label><input id="ticker" placeholder="e.g., ACGX" value="ACGX"></div>
+          <div class="field"><label>Filing type</label><select id="submissionType"></select><div class="hint" id="submissionHint"></div></div>
+          <div class="field" id="submissionExtra"></div>
+        </div>
+      </div></section>
+      <section class="card"><h2>Fund Basic Information <span class="tag">Item 2/9</span></h2><div class="body">
+        <div class="field"><label>Investment Objective *</label><textarea id="objective">The Fund seeks long-term capital appreciation by investing primarily in equity securities of large-capitalization U.S. companies.</textarea></div>
+        <div class="field"><label>Principal Investment Strategies</label><div id="strategies"></div><button class="btn ghost mini" type="button" onclick="addStrategy()">+ Add strategy</button></div>
+        <div class="field"><label>Principal Risks</label><div id="risks"></div><button class="btn ghost mini" type="button" onclick="addRisk()">+ Add risk</button></div>
+      </div></section>
+      <section class="card"><h2>Performance <span class="tag">Item 4</span></h2><div class="body">
+        <table class="grid"><thead><tr><th>Period</th><th>Return %</th><th>Volatility %</th><th>Sharpe</th><th>Std Dev %</th></tr></thead><tbody id="perfBody"></tbody></table>
+      </div></section>
+      <section class="card"><h2>Fee Structure <span class="tag">Item 3</span></h2><div class="body">
+        <div id="shareClasses"></div><button class="btn ghost mini" type="button" onclick="addShareClass()">+ Add share class</button>
+      </div></section>
+      <section class="card"><h2>Management &amp; Portfolio <span class="tag">Item 10 / 9(b)</span></h2><div class="body">
+        <div id="managers"></div><button class="btn ghost mini" type="button" onclick="addManager()">+ Add manager</button>
+        <div class="row two" style="margin-top:14px"><div class="field"><label>Portfolio Turnover %</label><input id="turnover" type="number" value="45"></div><div class="field"><label>Distribution Policy</label><input id="distPolicy" value="Distributions declared and paid quarterly."></div></div>
+      </div></section>
+    </div>
+
+    <!-- ============ SAI (PART B) ============ -->
+    <div class="formpanel" data-form="sai">
+      <div class="card"><div class="body"><div class="note">Statement of Additional Information — Form N-1A Part B (Items 17–29). Representative subset covering the highest-density SAI disclosures.</div></div></div>
+      <section class="card"><h2>Fund History &amp; Classification <span class="tag">Item 17/18</span></h2><div class="body">
+        <div class="row three">
+          <div class="field"><label>Date Organized</label><input id="sai_dateOrg" type="date"></div>
+          <div class="field"><label>State</label><input id="sai_state" value="Delaware"></div>
+          <div class="field"><label>Entity Form</label><input id="sai_entity" value="statutory trust"></div>
         </div>
         <div class="row two">
-          <div class="field"><label>CIK *</label><input id="cik" placeholder="0001234567" value="0001234567"></div>
-          <div class="field"><label>Prospectus Date *</label><input id="prospectusDate" type="date"></div>
+          <div class="field"><label>Classification</label><select id="sai_class"><option value="diversified">Diversified</option><option value="non-diversified">Non-diversified</option></select></div>
+          <div class="field"><label># Fundamental Policies</label><input id="sai_policies" type="number" value="7"><div class="hint">Borrowing, senior securities, concentration, lending, etc.</div></div>
         </div>
-        <div class="field">
-          <label>Investment Objective *</label>
-          <textarea id="objective" placeholder="e.g., The Fund seeks long-term capital appreciation.">The Fund seeks long-term capital appreciation by investing primarily in equity securities of large-capitalization U.S. companies.</textarea>
+      </div></section>
+      <section class="card"><h2>Board of Trustees <span class="tag">Item 19</span></h2><div class="body">
+        <div id="sai_trustees"></div><button class="btn ghost mini" type="button" onclick="addTrustee()">+ Add trustee</button>
+        <div class="field" style="margin-top:12px"><label>Ownership table "as of" date</label><input id="sai_asof" type="date"></div>
+      </div></section>
+      <section class="card"><h2>Adviser &amp; Portfolio Managers <span class="tag">Item 21/22</span></h2><div class="body">
+        <div class="row two"><div class="field"><label>Adviser Name</label><input id="sai_adviser" value="Acme Asset Management LLC"></div><div class="field"><label>Advisory Fee Rate %</label><input id="sai_advfee" type="number" step="0.01" value="0.55"></div></div>
+        <div id="sai_pms"></div><button class="btn ghost mini" type="button" onclick="addSaiPM()">+ Add portfolio manager</button>
+      </div></section>
+      <section class="card"><h2>Taxation, ETF &amp; Proxy <span class="tag">Item 25/26</span></h2><div class="body">
+        <div class="row three">
+          <div class="check"><input id="sai_ric" type="checkbox" checked><label>Intends to qualify as RIC (Subchapter M)</label></div>
+          <div class="check"><input id="sai_isetf" type="checkbox" checked><label>Is an ETF</label></div>
+          <div class="field"><label>Creation Unit (shares)</label><input id="sai_cu" type="number" value="50000"></div>
         </div>
-        <div class="field">
-          <label>Principal Investment Strategies</label>
-          <div id="strategies"></div>
-          <button class="btn ghost mini" type="button" onclick="addStrategy()">+ Add strategy</button>
-        </div>
-        <div class="field">
-          <label>Principal Risks</label>
-          <div id="risks"></div>
-          <button class="btn ghost mini" type="button" onclick="addRisk()">+ Add risk</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Performance -->
-    <section class="card">
-      <h2>Performance Data <span class="tag">Item 4</span></h2>
-      <div class="body">
-        <table class="perf">
-          <thead><tr><th>Period</th><th>Annual Return %</th><th>Volatility %</th><th>Sharpe Ratio</th><th>Std Dev %</th></tr></thead>
-          <tbody id="perfBody"></tbody>
-        </table>
-        <p class="hint">Enter values as percentages (e.g. 12.34 for 12.34%). Sharpe ratio is a plain number.</p>
-      </div>
-    </section>
-
-    <!-- Fee Structure -->
-    <section class="card">
-      <h2>Fee Structure <span class="tag">Item 3</span></h2>
-      <div class="body">
-        <div id="shareClasses"></div>
-        <button class="btn ghost mini" type="button" onclick="addShareClass()">+ Add share class</button>
-      </div>
-    </section>
-
-    <!-- Management -->
-    <section class="card">
-      <h2>Fund Management <span class="tag">Item 10</span></h2>
-      <div class="body">
-        <div id="managers"></div>
-        <button class="btn ghost mini" type="button" onclick="addManager()">+ Add manager</button>
-      </div>
-    </section>
-
-    <!-- Portfolio Metrics -->
-    <section class="card">
-      <h2>Portfolio Metrics <span class="tag">Item 9(b)</span></h2>
-      <div class="body">
         <div class="row two">
-          <div class="field"><label>Portfolio Turnover %</label><input id="turnover" type="number" step="0.01" placeholder="e.g., 45" value="45"><div class="hint">Annual rate as a percentage.</div></div>
-          <div class="field"><label>Distribution Policy</label><input id="distPolicy" placeholder="e.g., Quarterly distributions" value="Distributions declared and paid quarterly."></div>
+          <div class="field"><label>NAV Pricing Time</label><input id="sai_navtime" value="4:00 p.m. Eastern"></div>
+          <div class="field"><label>Proxy Voting Delegated To</label><select id="sai_proxy"><option value="adviser">Adviser</option><option value="sub-adviser">Sub-adviser</option><option value="third-party">Third-party service</option></select></div>
         </div>
-      </div>
-    </section>
+        <div class="field"><label>Authorized Participant / Creation-Redemption Process</label><input id="sai_apdesc" value="Creation units issued in-kind to authorized participants under AP agreements."></div>
+      </div></section>
+    </div>
 
-    <!-- Board & Governance -->
-    <section class="card">
-      <h2>Board &amp; Governance <span class="tag">SAI</span></h2>
-      <div class="body">
-        <div id="board"></div>
-        <button class="btn ghost mini" type="button" onclick="addBoardMember()">+ Add board member</button>
-      </div>
-    </section>
+    <!-- ============ PART C ============ -->
+    <div class="formpanel" data-form="partc">
+      <div class="card"><div class="body"><div class="note">Part C — Other Information. Item 28 exhibit list and registration-statement signatures (17 CFR 239.15A).</div></div></div>
+      <section class="card"><h2>Item 28 — Exhibits</h2><div class="body"><div id="pc_exhibits"></div></div></section>
+      <section class="card"><h2>Signatures <span class="tag">§6(a)</span></h2><div class="body">
+        <div class="field"><label>Total number of trustees on the board</label><input id="pc_totalTrustees" type="number" value="3"><div class="hint">Used to check a majority signed.</div></div>
+        <div id="pc_signatures"></div><button class="btn ghost mini" type="button" onclick="addSignature()">+ Add signatory</button>
+      </div></section>
+    </div>
+
+    <!-- ============ N-CEN ============ -->
+    <div class="formpanel" data-form="ncen">
+      <div class="card"><div class="body"><div class="note">Form N-CEN — annual census report (structured XML). Registrant &amp; CIK come from the shared context above. ETF series require exchange listing and authorized participants.</div></div></div>
+      <section class="card"><h2>Registrant <span class="tag">Part A</span></h2><div class="body">
+        <div class="row three">
+          <div class="field"><label>File Number (811-)</label><input id="cen_811" value="811-01234"></div>
+          <div class="field"><label>LEI</label><input id="cen_lei" value="5493001KJTIIGC8Y1R12"></div>
+          <div class="field"><label>Fiscal Year-End</label><input id="cen_fye" type="date"></div>
+        </div>
+        <div class="check"><input id="cen_first" type="checkbox"><label>First filing for this registrant</label></div>
+      </div></section>
+      <section class="card"><h2>Service Providers <span class="tag">Part B</span></h2><div class="body">
+        <div id="cen_sps"></div><button class="btn ghost mini" type="button" onclick="addServiceProvider()">+ Add service provider</button>
+      </div></section>
+      <section class="card"><h2>Series <span class="tag">Part B/C</span></h2><div class="body">
+        <div id="cen_series"></div><button class="btn ghost mini" type="button" onclick="addSeries()">+ Add series</button>
+      </div></section>
+      <section class="card"><h2>Signature</h2><div class="body"><div class="row two"><div class="field"><label>Signer Name</label><input id="cen_signer" value="Jane Smith"></div><div class="field"><label>Title</label><input id="cen_signerTitle" value="Secretary"></div></div></div></section>
+    </div>
+
+    <!-- ============ N-PORT ============ -->
+    <div class="formpanel" data-form="nport">
+      <div class="card"><div class="body"><div class="note">Form N-PORT (NPORT-P) — monthly portfolio holdings (structured XML). Only the 3rd month of each quarter is public; liquidity classification is filed non-public.</div></div></div>
+      <section class="card"><h2>Fund-Level <span class="tag">Part A/B</span></h2><div class="body">
+        <div class="row two"><div class="field"><label>Series Name</label><input id="port_series" value="Acme Growth ETF"></div><div class="field"><label>Report Period End</label><input id="port_period" type="date"></div></div>
+        <div class="row three">
+          <div class="field"><label>Total Assets $</label><input id="port_ta" type="number" value="105000000"></div>
+          <div class="field"><label>Total Liabilities $</label><input id="port_tl" type="number" value="5000000"></div>
+          <div class="field"><label>Net Assets $</label><input id="port_na" type="number" value="100000000"></div>
+        </div>
+        <div class="row three">
+          <div class="field"><label>Return M1 %</label><input id="port_r1" type="number" step="0.01" value="1.2"></div>
+          <div class="field"><label>Return M2 %</label><input id="port_r2" type="number" step="0.01" value="0.8"></div>
+          <div class="field"><label>Return M3 %</label><input id="port_r3" type="number" step="0.01" value="1.5"></div>
+        </div>
+        <div class="field"><label>Month in Quarter</label><select id="port_month"><option value="3">3 (public)</option><option value="1">1 (non-public)</option><option value="2">2 (non-public)</option></select></div>
+      </div></section>
+      <section class="card"><h2>Portfolio Holdings <span class="tag">Part C</span></h2><div class="body">
+        <div id="port_holdings"></div><button class="btn ghost mini" type="button" onclick="addHolding()">+ Add position</button>
+      </div></section>
+    </div>
   </div>
 
-  <!-- ============ VALIDATION PANEL ============ -->
+  <!-- ============ SHARED VALIDATION PANEL ============ -->
   <div class="panel">
     <section class="card">
       <div class="status" id="status"><span class="dot"></span><span id="statusText">Ready</span></div>
-      <div class="counts">
-        <span class="pill e" id="errCount">0 errors</span>
-        <span class="pill w" id="warnCount">0 warnings</span>
-      </div>
-      <div class="issues" id="issues"><div class="clean">Start editing — validation runs automatically.</div></div>
+      <div class="counts"><span class="pill e" id="errCount">0 errors</span><span class="pill w" id="warnCount">0 warnings</span></div>
+      <div class="issues" id="issues"><div class="clean">Editing runs validation automatically.</div></div>
     </section>
-
     <section class="card">
-      <div class="actions">
-        <button class="btn" onclick="runValidate()">Validate</button>
-        <button class="btn ghost" onclick="downloadProspectus()">Download Prospectus</button>
-        <button class="btn" style="background:var(--ok)" onclick="submitFiling()">Submit Filing</button>
-      </div>
+      <div class="actions" id="formActions"></div>
       <pre id="output"></pre>
     </section>
   </div>
 </div>
 
 <script>
-// ---------- helpers ----------
-const $ = (id) => document.getElementById(id);
-const val = (id) => ($(id) ? $(id).value.trim() : '');
-const numOrU = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n; };
-const pctOrU = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n / 100; };
+const $=(id)=>document.getElementById(id);
+const val=(id)=>($(id)?$(id).value.trim():'');
+const numOrU=(v)=>{const n=parseFloat(v);return isNaN(n)?undefined:n};
+const pctOrU=(v)=>{const n=parseFloat(v);return isNaN(n)?undefined:n/100};
+const chk=(id)=>($(id)?$(id).checked:false);
+let META={};
+let activeForm='prospectus';
 
-// ---------- multi-input: strategies / risks ----------
-function multiRow(container, value, placeholder) {
-  const div = document.createElement('div');
-  div.className = 'multi-item';
-  div.innerHTML = `<input placeholder="${placeholder}"><button class="btn danger" type="button" title="Remove">&times;</button>`;
-  div.querySelector('input').value = value || '';
-  div.querySelector('input').addEventListener('input', schedule);
-  div.querySelector('button').onclick = () => { div.remove(); schedule(); };
-  container.appendChild(div);
+function ctx(){return {fundName:val('fundName'),cik:val('cik'),ticker:val('ticker'),prospectusDate:new Date(val('prospectusDate')||Date.now()).toISOString()};}
+
+// ---------- generic multi-row ----------
+function multiRow(container,value,placeholder){
+  const d=document.createElement('div');d.className='multi-item';
+  d.innerHTML=`<input placeholder="${placeholder}"><button class="btn danger" type="button">&times;</button>`;
+  d.querySelector('input').value=value||'';
+  d.querySelector('button').onclick=()=>{d.remove();schedule()};
+  container.appendChild(d);
 }
-function addStrategy(v){ multiRow($('strategies'), v, 'e.g., Invests in derivatives for hedging'); }
-function addRisk(v){ multiRow($('risks'), v, 'e.g., Market risk'); }
-function collectMulti(id){ return [...$(id).querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean); }
+const addStrategy=(v)=>multiRow($('strategies'),v,'e.g., Invests in derivatives for hedging');
+const addRisk=(v)=>multiRow($('risks'),v,'e.g., Market risk');
+const collectMulti=(id)=>[...$(id).querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean);
 
-// ---------- performance rows ----------
-const PERIODS = ['1yr','3yr','5yr','10yr'];
+// ---------- PART A: performance / fees / managers ----------
+const PERIODS=['1yr','3yr','5yr','10yr'];
 function buildPerf(){
-  $('perfBody').innerHTML = PERIODS.map((p,i)=>`<tr data-p="${p}">
-    <td>${p}</td>
-    <td><input data-k="annualReturn" type="number" step="0.01"></td>
-    <td><input data-k="volatility" type="number" step="0.01"></td>
-    <td><input data-k="sharpeRatio" type="number" step="0.01"></td>
-    <td><input data-k="standardDeviation" type="number" step="0.01"></td>
-  </tr>`).join('');
-  // sample defaults
-  const defaults = {'1yr':[14.2,16.1,1.05,15.8],'3yr':[11.8,15.2,0.92,14.9],'5yr':[10.4,14.6,0.85,14.1],'10yr':[9.1,13.9,0.78,13.5]};
-  $('perfBody').querySelectorAll('tr').forEach(tr=>{
-    const d = defaults[tr.dataset.p];
-    const ins = tr.querySelectorAll('input');
-    ins.forEach((inp,idx)=>{ inp.value = d[idx]; inp.addEventListener('input', schedule); });
-  });
+  const def={'1yr':[14.2,16.1,1.05,15.8],'3yr':[11.8,15.2,.92,14.9],'5yr':[10.4,14.6,.85,14.1],'10yr':[9.1,13.9,.78,13.5]};
+  $('perfBody').innerHTML=PERIODS.map(p=>`<tr data-p="${p}"><td>${p}</td>`+['annualReturn','volatility','sharpeRatio','standardDeviation'].map(k=>`<td><input data-k="${k}" type="number" step="0.01" value="${def[p][['annualReturn','volatility','sharpeRatio','standardDeviation'].indexOf(k)]}"></td>`).join('')+'</tr>').join('');
 }
-function collectPerf(){
-  const out=[];
-  $('perfBody').querySelectorAll('tr').forEach(tr=>{
-    const row={period:tr.dataset.p};
-    let any=false;
-    tr.querySelectorAll('input').forEach(inp=>{
-      const k=inp.dataset.k;
-      const v = k==='sharpeRatio' ? numOrU(inp.value) : pctOrU(inp.value);
-      if(v!==undefined){ row[k]=v; any=true; }
-    });
-    if(any) out.push(row);
-  });
-  return out;
+function collectPerf(){const out=[];$('perfBody').querySelectorAll('tr').forEach(tr=>{const row={period:tr.dataset.p};let any=false;tr.querySelectorAll('input').forEach(i=>{const k=i.dataset.k;const v=k==='sharpeRatio'?numOrU(i.value):pctOrU(i.value);if(v!==undefined){row[k]=v;any=true}});if(any)out.push(row)});return out;}
+function addShareClass(d){d=d||{};const w=document.createElement('div');w.className='subcard sc';
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Share Class</label><input data-k="shareClass"></div><div class="field"><label>&nbsp;</label></div></div>
+  <div class="row two"><div class="field"><label>Net Exp %</label><input data-k="net" type="number" step="0.001"></div><div class="field"><label>Gross Exp %</label><input data-k="gross" type="number" step="0.001"></div></div>
+  <div class="row two"><div class="field"><label>Waiver Description</label><input data-k="wd"></div><div class="field"><label>Waiver Expiration</label><input data-k="we" type="date"></div></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('shareClass',d.shareClass);set('net',d.net);set('gross',d.gross);set('wd',d.wd);set('we',d.we);
+  $('shareClasses').appendChild(w);
+}
+function collectFees(){return [...$('shareClasses').querySelectorAll('.sc')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`).value.trim();const f={shareClass:g('shareClass')};const n=pctOrU(g('net'));if(n!==undefined)f.netExpenseRatio=n;const gr=pctOrU(g('gross'));if(gr!==undefined)f.grossExpenseRatio=gr;if(g('wd'))f.waiverDescription=g('wd');if(g('we'))f.waiverExpiration=g('we');return f});}
+function addManager(d){d=d||{};const w=document.createElement('div');w.className='subcard mgr';
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Manager Name</label><input data-k="name"></div><div class="field"><label>Tenure (yrs)</label><input data-k="t" type="number" step="0.1"></div></div>
+  <div class="field"><label>Bio</label><textarea data-k="bio"></textarea></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('t',d.t);set('bio',d.bio);$('managers').appendChild(w);
+}
+function collectManagers(){return [...$('managers').querySelectorAll('.mgr')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`).value.trim();const m={name:g('name')};if(g('bio'))m.bio=g('bio');const t=numOrU(g('t'));if(t!==undefined)m.tenureYears=t;return m}).filter(m=>m.name||m.bio);}
+
+function buildProspectusPayload(){
+  const c=ctx();
+  return {basicInfo:{fundName:c.fundName,cik:c.cik,ticker:c.ticker,objective:val('objective'),strategies:collectMulti('strategies'),principalRisks:collectMulti('risks')},
+    riskReturnMetrics:{performance:collectPerf()},feeTables:collectFees(),managers:collectManagers(),
+    portfolioMetrics:{portfolioTurnover:pctOrU(val('turnover')),distributionPolicy:val('distPolicy')||undefined},
+    prospectusDate:c.prospectusDate,shareClasses:collectFees().map(f=>f.shareClass).filter(Boolean)};
+}
+function submissionContext(){
+  const t=val('submissionType');const c={prospectusDate:ctx().prospectusDate};
+  if(t==='485APOS')c.proposedEffectiveDate=val('sub_effDate')||undefined;
+  if(t==='485BPOS'){c.hasMaterialChanges=chk('sub_material');c.interactiveDataCurrent=!chk('sub_xbrlDelinquent');}
+  if(t==='497K')c.isSummaryOnly=!chk('sub_fullBody');
+  if(t==='24F-2'){c.fiscalYearEnd=val('sub_fye')||undefined;c.netSalesAmount=numOrU(val('sub_netSales'));}
+  if(t==='N-1A')c.hasN8AOnFile=!chk('sub_noN8A'),c.isFirstTimeRegistrant=true;
+  return c;
+}
+function renderSubmissionExtra(){
+  const t=val('submissionType');const box=$('submissionExtra');let h='';
+  if(t==='485APOS')h=`<label>Proposed Effective Date</label><input id="sub_effDate" type="date">`;
+  else if(t==='485BPOS')h=`<label>Eligibility</label><div class="check"><input id="sub_material" type="checkbox"><label>Introduces material changes</label></div><div class="check"><input id="sub_xbrlDelinquent" type="checkbox"><label>XBRL/Interactive Data delinquent</label></div>`;
+  else if(t==='497K')h=`<label>Content</label><div class="check"><input id="sub_fullBody" type="checkbox"><label>Includes full statutory prospectus body</label></div>`;
+  else if(t==='24F-2')h=`<label>Fiscal Year-End</label><input id="sub_fye" type="date"><label style="margin-top:8px">Net Sales $</label><input id="sub_netSales" type="number" value="25000000">`;
+  else if(t==='N-1A')h=`<label>Registration</label><div class="check"><input id="sub_noN8A" type="checkbox"><label>Form N-8A NOT yet on file</label></div>`;
+  else h='<label>&nbsp;</label><div class="hint">Definitive materials as used (Rule 497).</div>';
+  box.innerHTML=h;
+  const meta=(META.submissionTypes||[]).find(s=>s.type===t);
+  $('submissionHint').textContent=meta?meta.rule+' — '+meta.summary:'';
 }
 
-// ---------- fee / share classes ----------
-function addShareClass(data){
-  data = data || {};
-  const wrap = document.createElement('div');
-  wrap.className='subcard shareclass';
-  wrap.innerHTML = `
-    <button class="btn danger rm" type="button" title="Remove class">&times;</button>
-    <div class="row two">
-      <div class="field"><label>Share Class *</label><input data-k="shareClass" placeholder="e.g., Institutional"></div>
-      <div class="field"><label>&nbsp;</label></div>
-    </div>
-    <div class="row two">
-      <div class="field"><label>Net Expense Ratio %</label><input data-k="net" type="number" step="0.001" placeholder="0.45"></div>
-      <div class="field"><label>Gross Expense Ratio %</label><input data-k="gross" type="number" step="0.001" placeholder="0.65"></div>
-    </div>
-    <div class="row two">
-      <div class="field"><label>Waiver Description</label><input data-k="waiverDescription" placeholder="Adviser contractually waives fees..."></div>
-      <div class="field"><label>Waiver Expiration</label><input data-k="waiverExpiration" type="date"></div>
-    </div>
-    <div class="field">
-      <label>Breakpoints (sales load)</label>
-      <div class="bps"></div>
-      <button class="btn ghost mini" type="button">+ Add breakpoint</button>
-    </div>`;
-  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
-  wrap.querySelector('.field > button').onclick=()=>{ addBreakpoint(wrap.querySelector('.bps')); };
-  wrap.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
-  // hydrate
-  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
-  set('shareClass',data.shareClass); set('net',data.net); set('gross',data.gross);
-  set('waiverDescription',data.waiverDescription); set('waiverExpiration',data.waiverExpiration);
-  (data.breakpoints||[]).forEach(bp=>addBreakpoint(wrap.querySelector('.bps'),bp));
-  $('shareClasses').appendChild(wrap);
+// ---------- SAI ----------
+function addTrustee(d){d=d||{};const w=document.createElement('div');w.className='subcard tr';
+  const bands=(META.ownershipBands||[]).map(b=>`<option>${b}</option>`).join('');
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Name</label><input data-k="name"></div><div class="check" style="margin-top:18px"><input data-k="indep" type="checkbox"><label>Independent</label></div></div>
+  <div class="row two"><div class="field"><label>Owns (Fund)</label><select data-k="own">${bands}</select></div><div class="field"><label>Owns (Complex)</label><select data-k="ownc">${bands}</select></div></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('own',d.own);set('ownc',d.ownc);if(d.indep)w.querySelector('[data-k="indep"]').checked=true;
+  $('sai_trustees').appendChild(w);
 }
-function addBreakpoint(container, bp){
-  bp=bp||{};
-  const row=document.createElement('div');
-  row.className='multi-item';
-  row.innerHTML=`<input data-k="threshold" type="number" placeholder="Investment $ (e.g. 1000000)"><input data-k="loadPercent" type="number" step="0.01" placeholder="Load %"><button class="btn danger" type="button">&times;</button>`;
-  row.querySelector('[data-k="threshold"]').value = bp.threshold ?? '';
-  row.querySelector('[data-k="loadPercent"]').value = bp.loadPercent ?? '';
-  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
-  row.querySelector('button').onclick=()=>{row.remove();schedule();};
-  container.appendChild(row);
+function addSaiPM(d){d=d||{};const w=document.createElement('div');w.className='subcard saipm';
+  const bands=(META.ownershipBands||[]).map(b=>`<option>${b}</option>`).join('');
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>PM Name</label><input data-k="name"></div><div class="field"><label>Owns Fund</label><select data-k="own">${bands}</select></div></div>
+  <div class="field"><label>Material Conflicts</label><input data-k="conf" value="Side-by-side management addressed by allocation policy."></div>
+  <div class="field"><label>Compensation Structure</label><input data-k="comp" value="Base salary plus performance bonus vs. benchmark."></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('own',d.own);$('sai_pms').appendChild(w);
 }
-function collectFees(){
-  return [...$('shareClasses').querySelectorAll('.shareclass')].map(w=>{
-    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
-    const fee={ shareClass:g('shareClass') };
-    const net=pctOrU(g('net')); if(net!==undefined) fee.netExpenseRatio=net;
-    const gross=pctOrU(g('gross')); if(gross!==undefined) fee.grossExpenseRatio=gross;
-    if(g('waiverDescription')) fee.waiverDescription=g('waiverDescription');
-    if(g('waiverExpiration')) fee.waiverExpiration=g('waiverExpiration');
-    const bps=[...w.querySelectorAll('.bps .multi-item')].map(r=>({
-      threshold:numOrU(r.querySelector('[data-k="threshold"]').value),
-      loadPercent:pctOrU(r.querySelector('[data-k="loadPercent"]').value)
-    })).filter(b=>b.threshold!==undefined);
-    if(bps.length) fee.breakpoints=bps;
-    return fee;
-  });
+function buildSAIPayload(){
+  return {__fundName:ctx().fundName,dateOrganized:val('sai_dateOrg')||undefined,stateOfOrganization:val('sai_state')||undefined,entityForm:val('sai_entity')||undefined,
+    classification:val('sai_class'),fundamentalPolicies:Array.from({length:Math.max(0,parseInt(val('sai_policies'))||0)},(_,i)=>({category:'policy',text:'Fundamental policy '+(i+1)})),
+    trustees:[...$('sai_trustees').querySelectorAll('.tr')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`);return {name:g('name').value.trim(),isInterested:!g('indep').checked,ownershipInFund:g('own').value,ownershipInComplex:g('ownc').value}}).filter(t=>t.name),
+    ownershipAsOfDate:val('sai_asof')||undefined,
+    adviserName:val('sai_adviser')||undefined,advisoryFeeSchedule:[{rate:pctOrU(val('sai_advfee'))}],
+    portfolioManagers:[...$('sai_pms').querySelectorAll('.saipm')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`);return {name:g('name').value.trim(),ownershipOfFund:g('own').value,materialConflicts:g('conf').value.trim(),compensationStructure:g('comp').value.trim()}}).filter(p=>p.name),
+    ricQualified:chk('sai_ric'),isETF:chk('sai_isetf'),creationUnitSize:numOrU(val('sai_cu')),navPricingTime:val('sai_navtime')||undefined,authorizedParticipantsDesc:val('sai_apdesc')||undefined,
+    proxyVotingDelegatedTo:val('sai_proxy')};
 }
 
-// ---------- managers ----------
-function addManager(data){
-  data=data||{};
-  const wrap=document.createElement('div');
-  wrap.className='subcard manager';
-  wrap.innerHTML=`
-    <button class="btn danger rm" type="button">&times;</button>
-    <div class="row two">
-      <div class="field"><label>Manager Name *</label><input data-k="name" placeholder="e.g., Jane Smith, CFA"></div>
-      <div class="field"><label>Tenure (years)</label><input data-k="tenureYears" type="number" step="0.1" placeholder="e.g., 6"></div>
-    </div>
-    <div class="field"><label>Bio / Business Experience</label><textarea data-k="bio" placeholder="Portfolio manager since 2019; previously..."></textarea></div>`;
-  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
-  wrap.querySelectorAll('input,textarea').forEach(i=>i.addEventListener('input',schedule));
-  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
-  set('name',data.name); set('tenureYears',data.tenureYears); set('bio',data.bio);
-  $('managers').appendChild(wrap);
+// ---------- PART C ----------
+function buildExhibitUI(){
+  $('pc_exhibits').innerHTML=(META.exhibitCatalog||[]).map(x=>`<div class="multi-item"><div style="flex:1;font-size:13px;padding-top:7px">(${x.code}) ${x.description}${x.required?' <strong style="color:var(--err)">*</strong>':''}</div><select data-code="${x.code}" style="max-width:190px"><option value="">Not filed</option><option value="attached">Filed herewith</option><option value="incorporated">Incorporated by ref</option></select></div>`).join('');
+  // default the required ones to attached
+  (META.exhibitCatalog||[]).filter(x=>x.required).forEach(x=>{const s=$('pc_exhibits').querySelector(`[data-code="${x.code}"]`);if(s)s.value='attached'});
 }
-function collectManagers(){
-  return [...$('managers').querySelectorAll('.manager')].map(w=>{
-    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
-    const m={name:g('name')};
-    if(g('bio')) m.bio=g('bio');
-    const t=numOrU(g('tenureYears')); if(t!==undefined) m.tenureYears=t;
-    return m;
-  }).filter(m=>m.name || m.bio);
+function addSignature(d){d=d||{};const w=document.createElement('div');w.className='subcard sig';
+  const caps=['Principal Executive Officer','Principal Financial Officer','Principal Accounting Officer','Trustee','Registrant','Other'].map(c=>`<option>${c}</option>`).join('');
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Name</label><input data-k="name"></div><div class="field"><label>Capacity</label><select data-k="cap">${caps}</select></div></div>
+  <div class="row two"><div class="field"><label>Title</label><input data-k="title"></div><div class="field"><label>Date</label><input data-k="date" type="date"></div></div>
+  <div class="check"><input data-k="poa" type="checkbox"><label>Signed via power of attorney</label></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('cap',d.cap);set('title',d.title);set('date',d.date);$('pc_signatures').appendChild(w);
+}
+function buildPartCPayload(){
+  return {__fundName:ctx().fundName,totalTrustees:numOrU(val('pc_totalTrustees')),
+    exhibits:[...$('pc_exhibits').querySelectorAll('select')].map(s=>({code:s.dataset.code,attached:s.value==='attached',incorporatedByReference:s.value==='incorporated'})).filter(e=>e.attached||e.incorporatedByReference),
+    signatures:[...$('pc_signatures').querySelectorAll('.sig')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`);return {name:g('name').value.trim(),capacity:g('cap').value,title:g('title').value.trim(),date:g('date').value,viaPOA:g('poa').checked}}).filter(s=>s.name)};
 }
 
-// ---------- board ----------
-function addBoardMember(data){
-  data=data||{};
-  const wrap=document.createElement('div');
-  wrap.className='subcard boardm';
-  wrap.innerHTML=`
-    <button class="btn danger rm" type="button">&times;</button>
-    <div class="row two">
-      <div class="field"><label>Trustee Name</label><input data-k="name" placeholder="e.g., Robert Lee"></div>
-      <div class="field"><label>&nbsp;</label><div class="check"><input data-k="independent" type="checkbox"><label>Independent trustee</label></div></div>
-    </div>
-    <div class="field"><label>Material Relationships / Conflicts</label><input data-k="conflicts" placeholder="e.g., None / Partner at adviser's law firm"></div>`;
-  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
-  wrap.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
-  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
-  set('name',data.name); set('conflicts',data.conflicts);
-  if(data.independent) wrap.querySelector('[data-k="independent"]').checked=true;
-  $('board').appendChild(wrap);
+// ---------- N-CEN ----------
+function addServiceProvider(d){d=d||{};const w=document.createElement('div');w.className='multi-item censp';
+  w.innerHTML=`<input data-k="role" placeholder="Role (Adviser/Custodian/...)" style="max-width:170px"><input data-k="name" placeholder="Name"><input data-k="lei" placeholder="LEI" style="max-width:150px"><button class="btn danger" type="button">&times;</button>`;
+  w.querySelector('button').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('role',d.role);set('name',d.name);set('lei',d.lei);$('cen_sps').appendChild(w);
 }
-function collectBoard(){
-  return [...$('board').querySelectorAll('.boardm')].map(w=>{
-    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
-    const m={ name:g('name'), independent:w.querySelector('[data-k="independent"]').checked };
-    if(g('conflicts')) m.conflicts=g('conflicts');
-    return m;
-  }).filter(m=>m.name);
+function addSeries(d){d=d||{};const w=document.createElement('div');w.className='subcard censeries';
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Series Name</label><input data-k="name"></div><div class="field"><label>Series ID</label><input data-k="sid"></div></div>
+  <div class="row three"><div class="check"><input data-k="etf" type="checkbox"><label>ETF</label></div><div class="check"><input data-k="idx" type="checkbox"><label>Index fund</label></div><div class="check"><input data-k="r6c11" type="checkbox"><label>Relies on 6c-11</label></div></div>
+  <div class="etfonly"><div class="row three"><div class="field"><label>Exchange (MIC)</label><input data-k="exch" placeholder="XNAS"></div><div class="field"><label>ETF Ticker</label><input data-k="etick"></div><div class="field"><label>Creation Unit (shares)</label><input data-k="cu" type="number"></div></div>
+  <div class="field"><label>Authorized Participants</label><div class="aps"></div><button class="btn ghost mini" type="button">+ Add AP</button></div></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  w.querySelector('.etfonly button').onclick=()=>addAP(w.querySelector('.aps'));
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('sid',d.sid);set('exch',d.exch);set('etick',d.etick);set('cu',d.cu);
+  if(d.etf)w.querySelector('[data-k="etf"]').checked=true;if(d.r6c11)w.querySelector('[data-k="r6c11"]').checked=true;
+  (d.aps||[]).forEach(ap=>addAP(w.querySelector('.aps'),ap));
+  $('cen_series').appendChild(w);
 }
-
-// ---------- payload ----------
-function buildPayload(){
-  return {
-    basicInfo:{
-      fundName:val('fundName'), cik:val('cik'), ticker:val('ticker'),
-      objective:val('objective'),
-      strategies:collectMulti('strategies'),
-      principalRisks:collectMulti('risks')
-    },
-    riskReturnMetrics:{ performance:collectPerf() },
-    feeTables:collectFees(),
-    managers:collectManagers(),
-    portfolioMetrics:{
-      portfolioTurnover:pctOrU(val('turnover')),
-      distributionPolicy:val('distPolicy')||undefined
-    },
-    governance:{ boardMembers:collectBoard() },
-    prospectusDate:new Date(val('prospectusDate')||Date.now()).toISOString(),
-    shareClasses:collectFees().map(f=>f.shareClass).filter(Boolean)
-  };
+function addAP(container,d){d=d||{};const r=document.createElement('div');r.className='multi-item ap';
+  r.innerHTML=`<input data-k="name" placeholder="AP name"><input data-k="lei" placeholder="LEI" style="max-width:150px"><input data-k="pv" type="number" placeholder="Purchases $" style="max-width:130px"><input data-k="rv" type="number" placeholder="Redemptions $" style="max-width:130px"><button class="btn danger" type="button">&times;</button>`;
+  r.querySelector('button').onclick=()=>{r.remove();schedule()};
+  const set=(k,v)=>{const e=r.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('name',d.name);set('lei',d.lei);set('pv',d.pv);set('rv',d.rv);container.appendChild(r);
+}
+function buildNCenPayload(){const c=ctx();
+  return {registrantName:c.fundName,cik:c.cik,lei:val('cen_lei')||undefined,fileNumber811:val('cen_811')||undefined,fiscalYearEnd:val('cen_fye')?new Date(val('cen_fye')).toISOString():undefined,isFirstFiling:chk('cen_first'),
+    serviceProviders:[...$('cen_sps').querySelectorAll('.censp')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`).value.trim();return {role:g('role'),name:g('name'),lei:g('lei')||undefined}}).filter(s=>s.role||s.name),
+    series:[...$('cen_series').querySelectorAll('.censeries')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`);const isetf=g('etf').checked;
+      return {seriesName:g('name').value.trim(),seriesId:g('sid').value.trim()||undefined,isETF:isetf,isIndexFund:g('idx').checked,reliesOn6c11:g('r6c11').checked,
+        exchange:isetf?(g('exch').value.trim()||undefined):undefined,etfTicker:isetf?(g('etick').value.trim()||undefined):undefined,creationUnitShares:isetf?numOrU(g('cu').value):undefined,
+        authorizedParticipants:isetf?[...w.querySelectorAll('.ap')].map(r=>{const gg=k=>r.querySelector(`[data-k="${k}"]`).value.trim();return {name:gg('name'),lei:gg('lei')||undefined,purchaseValue:numOrU(gg('pv')),redemptionValue:numOrU(gg('rv'))}}).filter(a=>a.name):undefined}}).filter(s=>s.seriesName),
+    signature:{name:val('cen_signer')||undefined,title:val('cen_signerTitle')||undefined,date:ctx().prospectusDate}};
 }
 
-// ---------- validation (real-time) ----------
-let timer=null;
-function schedule(){ clearTimeout(timer); timer=setTimeout(runValidate,400); }
-async function runValidate(){
-  try{
-    const res=await fetch('/api/v1/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
-    renderValidation(await res.json());
-  }catch(e){ /* network hiccup — ignore, will re-run on next edit */ }
+// ---------- N-PORT ----------
+function addHolding(d){d=d||{};const w=document.createElement('div');w.className='subcard hold';
+  const units=(META.nport?.units||['NS','PA','NC','OU']).map(u=>`<option>${u}</option>`).join('');
+  const fvl=(META.nport?.fairValueLevels||['1','2','3','N/A']).map(u=>`<option>${u}</option>`).join('');
+  const liq=['','Highly Liquid','Moderately Liquid','Less Liquid','Illiquid'].map(u=>`<option value="${u}">${u||'(none)'}</option>`).join('');
+  w.innerHTML=`<button class="btn danger rm" type="button">&times;</button>
+  <div class="row two"><div class="field"><label>Issuer Name</label><input data-k="iss"></div><div class="field"><label>Title / Description</label><input data-k="title"></div></div>
+  <div class="row three"><div class="field"><label>CUSIP</label><input data-k="cusip"></div><div class="field"><label>Balance</label><input data-k="bal" type="number"></div><div class="field"><label>Units</label><select data-k="units">${units}</select></div></div>
+  <div class="row three"><div class="field"><label>Value USD</label><input data-k="val" type="number"></div><div class="field"><label>% Net Assets</label><input data-k="pct" type="number" step="0.01"></div><div class="field"><label>Currency</label><input data-k="cur" value="USD"></div></div>
+  <div class="row three"><div class="field"><label>Asset Category</label><input data-k="ac" value="equity-common"></div><div class="field"><label>Fair-Value Level</label><select data-k="fvl">${fvl}</select></div><div class="field"><label>Liquidity (non-public)</label><select data-k="liq">${liq}</select></div></div>`;
+  w.querySelector('.rm').onclick=()=>{w.remove();schedule()};
+  const set=(k,v)=>{const e=w.querySelector(`[data-k="${k}"]`);if(e&&v!==undefined)e.value=v};
+  set('iss',d.iss);set('title',d.title);set('cusip',d.cusip);set('bal',d.bal);set('val',d.val);set('pct',d.pct);set('ac',d.ac);
+  $('port_holdings').appendChild(w);
 }
-function renderValidation(r){
-  const errs=r.errors||[], warns=r.warnings||[];
-  const st=$('status'), stt=$('statusText');
-  st.className='status '+(r.isValid?'ok':'err');
-  stt.textContent = r.isValid ? 'Ready to file — no blocking errors' : 'Deficiencies found';
-  $('errCount').textContent = errs.length+' error'+(errs.length===1?'':'s');
-  $('warnCount').textContent = warns.length+' warning'+(warns.length===1?'':'s');
-  const box=$('issues');
-  if(!errs.length && !warns.length){ box.innerHTML='<div class="clean">✓ No issues detected. All required N-1A items are present.</div>'; return; }
-  const item=(x,cls)=>`<div class="issue ${cls}"><span class="code">${x.code} · ${x.field}</span>${x.message}</div>`;
-  box.innerHTML = errs.map(x=>item(x,'e')).join('') + warns.map(x=>item(x,'w')).join('');
+function buildNPortPayload(){const c=ctx();
+  return {registrantName:c.fundName,cik:c.cik,seriesName:val('port_series')||undefined,reportPeriodEnd:val('port_period')||undefined,monthInQuarter:parseInt(val('port_month')),
+    totalAssets:numOrU(val('port_ta')),totalLiabilities:numOrU(val('port_tl')),netAssets:numOrU(val('port_na')),
+    monthlyReturns:[val('port_r1'),val('port_r2'),val('port_r3')].map(pctOrU).filter(v=>v!==undefined),
+    holdings:[...$('port_holdings').querySelectorAll('.hold')].map(w=>{const g=k=>w.querySelector(`[data-k="${k}"]`);const h={issuerName:g('iss').value.trim(),title:g('title').value.trim(),cusip:g('cusip').value.trim()||undefined,balance:numOrU(g('bal').value),units:g('units').value,currency:g('cur').value.trim()||undefined,valueUSD:numOrU(g('val').value),pctNetAssets:numOrU(g('pct').value),assetCategory:g('ac').value.trim()||undefined,fairValueLevel:g('fvl').value};const l=g('liq').value;if(l)h.liquidityClassification=l;return h}).filter(h=>h.issuerName),
+    signature:{name:val('fundName'),title:'Authorized Officer',date:c.prospectusDate}};
 }
 
-// ---------- actions ----------
-async function downloadProspectus(){
-  const res=await fetch('/api/v1/generate-prospectus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
-  if(!res.ok){ showOutput(await res.text()); return; }
-  const blob=await res.blob();
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=(val('fundName')||'prospectus').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-prospectus.html';
-  document.body.appendChild(a); a.click(); a.remove();
+// ---------- form registry ----------
+const FORMS={
+  prospectus:{label:'Prospectus · Part A',validate:async()=>{
+    const p=buildProspectusPayload();
+    const [d,s]=await Promise.all([
+      fetch('/api/v1/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>r.json()),
+      fetch('/api/v1/submission/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:val('submissionType'),context:submissionContext()})}).then(r=>r.json())
+    ]);
+    return {isValid:d.isValid&&s.isValid,errors:[...(d.errors||[]),...(s.errors||[])],warnings:[...(d.warnings||[]),...(s.warnings||[])],extra:s.registrationFee!==undefined?`Est. registration fee: $${s.registrationFee.toFixed(2)}`:''};
+  },actions:[{label:'Download Prospectus',fn:()=>download('/api/v1/generate-prospectus',buildProspectusPayload(),'prospectus.html')},{label:'Submit Filing',cls:'ok',fn:submitFiling}]},
+  sai:{label:'SAI · Part B',endpoint:'/api/v1/sai/validate',build:buildSAIPayload,actions:[{label:'Download SAI',fn:()=>download('/api/v1/sai/download',buildSAIPayload(),'sai.html')}]},
+  partc:{label:'Part C',endpoint:'/api/v1/partc/validate',build:buildPartCPayload,actions:[{label:'Download Part C',fn:()=>download('/api/v1/partc/download',buildPartCPayload(),'partc.html')}]},
+  ncen:{label:'N-CEN',endpoint:'/api/v1/ncen/validate',build:buildNCenPayload,actions:[{label:'Download N-CEN XML',fn:()=>download('/api/v1/ncen/download',buildNCenPayload(),'ncen.xml')}]},
+  nport:{label:'N-PORT',endpoint:'/api/v1/nport/validate',build:buildNPortPayload,actions:[{label:'Download N-PORT XML',fn:()=>download('/api/v1/nport/download',buildNPortPayload(),'nport.xml')}]},
+};
+
+async function download(url,payload,filename){
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!res.ok){showOutput(await res.text());return}
+  const blob=await res.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();
 }
 async function submitFiling(){
-  const btn=event.target; const old=btn.innerHTML; btn.innerHTML='<span class="spin"></span>Filing...';
-  try{
-    const res=await fetch('/api/v1/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
-    const data=await res.json();
-    if(!res.ok){
-      showOutput('❌ FILING BLOCKED\n\n'+JSON.stringify(data,null,2));
-    }else{
-      showOutput('✅ FILING SUBMITTED\n\nAccession: '+data.submission.accessionNumber+'\nStatus: '+data.submission.status+'\niXBRL facts tagged: '+data.ixbrlFacts+'\nWarnings: '+(data.validationWarnings||[]).length+'\n\n'+JSON.stringify(data.submission,null,2));
-    }
-  }catch(e){ showOutput('Network error: '+e.message); }
-  finally{ btn.innerHTML=old; }
+  const res=await fetch('/api/v1/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildProspectusPayload())});
+  const d=await res.json();
+  if(!res.ok)showOutput('BLOCKED\n\n'+JSON.stringify(d,null,2));
+  else showOutput('FILING SUBMITTED\nAccession: '+d.submission.accessionNumber+'\nStatus: '+d.submission.status+'\niXBRL facts: '+d.ixbrlFacts+'\nWarnings: '+(d.validationWarnings||[]).length);
 }
-function showOutput(t){ const o=$('output'); o.style.display='block'; o.textContent=t; o.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+// ---------- tabs & validation ----------
+function buildTabs(){
+  $('tabs').innerHTML=Object.entries(FORMS).map(([k,f])=>`<button class="tab${k===activeForm?' active':''}" data-form="${k}" onclick="switchTab('${k}')">${f.label}<span class="badge" id="badge-${k}"></span></button>`).join('');
+}
+function switchTab(k){activeForm=k;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.form===k));
+  document.querySelectorAll('.formpanel').forEach(p=>p.classList.toggle('active',p.dataset.form===k));
+  renderActions();runActive();
+}
+function renderActions(){
+  const f=FORMS[activeForm];
+  $('formActions').innerHTML=`<button class="btn" onclick="runActive()">Validate</button>`+ (f.actions||[]).map((a,i)=>`<button class="btn ${a.cls==='ok'?'':'ghost'}" style="${a.cls==='ok'?'background:var(--ok)':''}" data-i="${i}">${a.label}</button>`).join('');
+  [...$('formActions').querySelectorAll('[data-i]')].forEach(b=>b.onclick=()=>f.actions[+b.dataset.i].fn());
+}
+let timer=null,runSeq=0;
+function schedule(){clearTimeout(timer);timer=setTimeout(runActive,400);}
+async function runActive(){
+  const my=++runSeq,myForm=activeForm,f=FORMS[activeForm];let r;
+  try{
+    if(f.validate)r=await f.validate();
+    else r=await fetch(f.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(f.build())}).then(x=>x.json());
+  }catch(e){return}
+  if(my!==runSeq||myForm!==activeForm)return; // a newer validation (or tab switch) superseded this response
+  render(r);
+}
+function render(r){
+  const errs=r.errors||[],warns=r.warnings||[];
+  $('status').className='status '+(r.isValid?'ok':'err');
+  $('statusText').textContent=r.isValid?(FORMS[activeForm].label+' — ready to file'):'Deficiencies found';
+  $('errCount').textContent=errs.length+' error'+(errs.length===1?'':'s');
+  $('warnCount').textContent=warns.length+' warning'+(warns.length===1?'':'s');
+  const badge=$('badge-'+activeForm);if(badge){badge.textContent=errs.length||'';badge.className='badge '+(errs.length?'err':'');}
+  const box=$('issues');
+  const head=r.extra?`<div class="note">${r.extra}</div>`:'';
+  if(!errs.length&&!warns.length){box.innerHTML=head+'<div class="clean">✓ No issues detected.</div>';return}
+  const item=(x,c)=>`<div class="issue ${c}"><span class="code">${x.code} · ${x.field}</span>${x.message}</div>`;
+  box.innerHTML=head+errs.map(x=>item(x,'e')).join('')+warns.map(x=>item(x,'w')).join('');
+}
+function showOutput(t){const o=$('output');o.style.display='block';o.textContent=t;o.scrollIntoView({behavior:'smooth',block:'nearest'});}
 
 // ---------- init ----------
-// Delegated listeners so every field (including the static top-level inputs)
-// triggers real-time validation, not just dynamically-added rows.
-document.addEventListener('input', schedule);
-document.addEventListener('change', schedule);
-
-function init(){
-  $('prospectusDate').value = new Date().toISOString().slice(0,10);
-  ['Invests primarily in large-cap U.S. equity securities','May use index futures and options for efficient portfolio management','Invests up to 20% in foreign securities including emerging markets'].forEach(addStrategy);
+async function init(){
+  const today=new Date().toISOString().slice(0,10);
+  $('prospectusDate').value=today;$('sai_dateOrg').value='2018-01-15';$('sai_asof').value=today;$('cen_fye').value='2026-06-30';$('port_period').value='2026-06-30';
+  try{META=await fetch('/api/v1/meta').then(r=>r.json());}catch(e){META={}}
+  // submission types
+  $('submissionType').innerHTML=(META.submissionTypes||[]).map(s=>`<option value="${s.type}">${s.label}</option>`).join('');
+  $('submissionType').addEventListener('change',()=>{renderSubmissionExtra();schedule()});renderSubmissionExtra();
+  // Part A defaults
+  ['Invests primarily in large-cap U.S. equity securities','Uses index futures for hedging','Invests up to 20% in foreign and emerging markets'].forEach(addStrategy);
   ['Market risk','Equity securities risk','Derivatives risk','Foreign and emerging markets risk'].forEach(addRisk);
   buildPerf();
-  addShareClass({shareClass:'Institutional',net:0.45,gross:0.65,waiverDescription:'The adviser has contractually agreed to waive fees through the date below.',waiverExpiration: new Date(Date.now()+400*864e5).toISOString().slice(0,10)});
-  addShareClass({shareClass:'Investor',net:0.70,gross:0.85,waiverDescription:'The adviser has contractually agreed to waive fees through the date below.',waiverExpiration: new Date(Date.now()+400*864e5).toISOString().slice(0,10)});
-  addManager({name:'Jane Smith, CFA',tenureYears:6,bio:'Portfolio manager since 2019; previously senior analyst at a global asset manager for 8 years.'});
-  addManager({name:'Michael Chen',tenureYears:3,bio:'Co-portfolio manager since 2022; 12 years of quantitative research experience.'});
-  addBoardMember({name:'Robert Lee',independent:true,conflicts:'None'});
-  addBoardMember({name:'Susan Park',independent:true,conflicts:'None'});
-  addBoardMember({name:'David Nguyen',independent:false,conflicts:'Managing Director of the Fund\'s investment adviser.'});
-  runValidate();
+  addShareClass({shareClass:'Institutional',net:0.45,gross:0.65,wd:'Adviser contractually waives fees through the date at right.',we:new Date(Date.now()+400*864e5).toISOString().slice(0,10)});
+  addManager({name:'Jane Smith, CFA',t:6,bio:'Portfolio manager since 2019; previously senior analyst for 8 years.'});
+  // SAI defaults
+  addTrustee({name:'Robert Lee',indep:true,own:'$50,001 - $100,000',ownc:'Over $1,000,000'});
+  addTrustee({name:'Susan Park',indep:true,own:'$10,001 - $50,000',ownc:'$500,001 - $1,000,000'});
+  addTrustee({name:'David Nguyen',indep:false,own:'None',ownc:'None'});
+  addSaiPM({name:'Jane Smith, CFA',own:'$100,001 - $500,000'});
+  // Part C
+  buildExhibitUI();
+  addSignature({name:'Jane Smith',cap:'Principal Executive Officer',title:'President',date:today});
+  addSignature({name:'John Roe',cap:'Principal Financial Officer',title:'Treasurer',date:today});
+  addSignature({name:'Robert Lee',cap:'Trustee',title:'Trustee',date:today});
+  addSignature({name:'Susan Park',cap:'Trustee',title:'Trustee',date:today});
+  // N-CEN
+  ['Adviser','Custodian','Transfer Agent','Principal Underwriter','Independent Accountant'].forEach((r,i)=>addServiceProvider({role:r,name:['Acme Asset Management LLC','State Custody Bank N.A.','Acme Transfer Services','Acme Distributors LLC','BigFour LLP'][i]}));
+  addSeries({name:'Acme Growth ETF',sid:'S000012345',etf:true,r6c11:true,exch:'XNAS',etick:'ACGX',cu:50000,aps:[{name:'Big Bank Securities',lei:'5493001KJTIIGC8Y1R12',pv:250000000,rv:180000000}]});
+  // N-PORT
+  addHolding({iss:'Apple Inc.',title:'Common Stock',cusip:'037833100',bal:50000,val:9000000,pct:9.0,ac:'equity-common'});
+  addHolding({iss:'Microsoft Corp.',title:'Common Stock',cusip:'594918104',bal:20000,val:8500000,pct:8.5,ac:'equity-common'});
+  buildTabs();
+  document.addEventListener('input',schedule);document.addEventListener('change',schedule);
+  switchTab('prospectus');
 }
 init();
 </script>
