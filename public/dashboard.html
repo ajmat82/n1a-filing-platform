@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>N-1A Filing Platform — ETF Prospectus Builder</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1f2733; --muted:#66707d;
+    --line:#e3e8ef; --brand:#1f5fbf; --brand-d:#174a99;
+    --err:#c0392b; --err-bg:#fdecea; --warn:#a06a00; --warn-bg:#fff6e0;
+    --ok:#1e7e46; --ok-bg:#e8f6ee; --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:linear-gradient(135deg,#1f5fbf,#153f80);color:#fff;padding:22px 28px;}
+  header h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px;}
+  header p{margin:4px 0 0;opacity:.85;font-size:13px;}
+  .wrap{display:grid;grid-template-columns:1fr 340px;gap:24px;max-width:1200px;margin:24px auto;padding:0 24px;align-items:start;}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;}
+  .card > h2{margin:0;padding:14px 18px;font-size:14px;font-weight:650;background:#fbfcfe;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;}
+  .card > h2 .tag{font-weight:500;font-size:11px;color:var(--muted);background:#eef2f7;padding:2px 7px;border-radius:20px;}
+  .body{padding:16px 18px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 5px;text-transform:uppercase;letter-spacing:.3px;}
+  input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,95,191,.12);}
+  textarea{resize:vertical;min-height:64px;}
+  .row{display:grid;gap:12px;margin-bottom:14px;}
+  .row.two{grid-template-columns:1fr 1fr}
+  .row.three{grid-template-columns:1fr 1fr 1fr}
+  .row.four{grid-template-columns:repeat(4,1fr)}
+  .field{margin-bottom:14px;}
+  .hint{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-top:4px;}
+  .btn{border:none;border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;transition:background .15s;}
+  .btn:hover{background:var(--brand-d)}
+  .btn.ghost{background:#eef2f7;color:var(--brand-d)}
+  .btn.ghost:hover{background:#e1e8f2}
+  .btn.mini{padding:5px 10px;font-size:12px;}
+  .btn.danger{background:transparent;color:var(--err);padding:4px 8px;font-size:18px;line-height:1;}
+  .btn.danger:hover{background:var(--err-bg)}
+  .multi-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+  .multi-item input,.multi-item textarea{flex:1}
+  .subcard{border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px;background:#fbfcfe;position:relative;}
+  .subcard .rm{position:absolute;top:8px;right:8px;}
+  table.perf{width:100%;border-collapse:collapse;}
+  table.perf th{font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px;font-weight:600;}
+  table.perf td{padding:3px 4px;}
+  table.perf td:first-child{font-weight:600;font-size:13px;color:var(--ink);white-space:nowrap;padding-right:12px;}
+  .check{display:flex;align-items:center;gap:8px;}
+  .check input{width:auto;}
+  .check label{margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:500;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px;}
+  /* validation panel */
+  .panel{position:sticky;top:24px;}
+  .panel .card{margin-bottom:14px}
+  .status{display:flex;align-items:center;gap:10px;padding:14px 18px;font-weight:650;font-size:14px;}
+  .status .dot{width:12px;height:12px;border-radius:50%;background:#cbd3dd;flex:none;}
+  .status.ok .dot{background:var(--ok)} .status.ok{color:var(--ok)}
+  .status.err .dot{background:var(--err)} .status.err{color:var(--err)}
+  .counts{display:flex;gap:8px;padding:0 18px 12px;}
+  .pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;}
+  .pill.e{background:var(--err-bg);color:var(--err)}
+  .pill.w{background:var(--warn-bg);color:var(--warn)}
+  .issues{max-height:52vh;overflow:auto;padding:0 12px 12px;}
+  .issue{border-left:3px solid;padding:8px 10px;margin:8px 0;border-radius:0 6px 6px 0;font-size:12.5px;line-height:1.4;}
+  .issue.e{border-color:var(--err);background:var(--err-bg);}
+  .issue.w{border-color:var(--warn);background:var(--warn-bg);}
+  .issue .code{font-family:ui-monospace,Menlo,monospace;font-size:10px;opacity:.7;display:block;margin-bottom:2px;}
+  .clean{padding:16px 18px;color:var(--ok);font-size:13px;}
+  #output{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#0f1b2d;color:#d7e3f4;padding:14px;border-radius:8px;max-height:300px;overflow:auto;margin:0 18px 18px;display:none;}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-1px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>N-1A Filing Platform</h1>
+  <p>SEC Form N-1A prospectus builder for ETFs — real-time deficiency validation &amp; iXBRL generation</p>
+</header>
+
+<div class="wrap">
+  <!-- ============ FORM COLUMN ============ -->
+  <div>
+    <!-- Fund Basic Info -->
+    <section class="card">
+      <h2>Fund Basic Information <span class="tag">Item 2 / 9</span></h2>
+      <div class="body">
+        <div class="row two">
+          <div class="field"><label>Fund Name *</label><input id="fundName" placeholder="e.g., Acme Growth ETF" value="Acme Growth ETF"></div>
+          <div class="field"><label>Ticker</label><input id="ticker" placeholder="e.g., ACGX" value="ACGX"></div>
+        </div>
+        <div class="row two">
+          <div class="field"><label>CIK *</label><input id="cik" placeholder="0001234567" value="0001234567"></div>
+          <div class="field"><label>Prospectus Date *</label><input id="prospectusDate" type="date"></div>
+        </div>
+        <div class="field">
+          <label>Investment Objective *</label>
+          <textarea id="objective" placeholder="e.g., The Fund seeks long-term capital appreciation.">The Fund seeks long-term capital appreciation by investing primarily in equity securities of large-capitalization U.S. companies.</textarea>
+        </div>
+        <div class="field">
+          <label>Principal Investment Strategies</label>
+          <div id="strategies"></div>
+          <button class="btn ghost mini" type="button" onclick="addStrategy()">+ Add strategy</button>
+        </div>
+        <div class="field">
+          <label>Principal Risks</label>
+          <div id="risks"></div>
+          <button class="btn ghost mini" type="button" onclick="addRisk()">+ Add risk</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance -->
+    <section class="card">
+      <h2>Performance Data <span class="tag">Item 4</span></h2>
+      <div class="body">
+        <table class="perf">
+          <thead><tr><th>Period</th><th>Annual Return %</th><th>Volatility %</th><th>Sharpe Ratio</th><th>Std Dev %</th></tr></thead>
+          <tbody id="perfBody"></tbody>
+        </table>
+        <p class="hint">Enter values as percentages (e.g. 12.34 for 12.34%). Sharpe ratio is a plain number.</p>
+      </div>
+    </section>
+
+    <!-- Fee Structure -->
+    <section class="card">
+      <h2>Fee Structure <span class="tag">Item 3</span></h2>
+      <div class="body">
+        <div id="shareClasses"></div>
+        <button class="btn ghost mini" type="button" onclick="addShareClass()">+ Add share class</button>
+      </div>
+    </section>
+
+    <!-- Management -->
+    <section class="card">
+      <h2>Fund Management <span class="tag">Item 10</span></h2>
+      <div class="body">
+        <div id="managers"></div>
+        <button class="btn ghost mini" type="button" onclick="addManager()">+ Add manager</button>
+      </div>
+    </section>
+
+    <!-- Portfolio Metrics -->
+    <section class="card">
+      <h2>Portfolio Metrics <span class="tag">Item 9(b)</span></h2>
+      <div class="body">
+        <div class="row two">
+          <div class="field"><label>Portfolio Turnover %</label><input id="turnover" type="number" step="0.01" placeholder="e.g., 45" value="45"><div class="hint">Annual rate as a percentage.</div></div>
+          <div class="field"><label>Distribution Policy</label><input id="distPolicy" placeholder="e.g., Quarterly distributions" value="Distributions declared and paid quarterly."></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Board & Governance -->
+    <section class="card">
+      <h2>Board &amp; Governance <span class="tag">SAI</span></h2>
+      <div class="body">
+        <div id="board"></div>
+        <button class="btn ghost mini" type="button" onclick="addBoardMember()">+ Add board member</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ VALIDATION PANEL ============ -->
+  <div class="panel">
+    <section class="card">
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">Ready</span></div>
+      <div class="counts">
+        <span class="pill e" id="errCount">0 errors</span>
+        <span class="pill w" id="warnCount">0 warnings</span>
+      </div>
+      <div class="issues" id="issues"><div class="clean">Start editing — validation runs automatically.</div></div>
+    </section>
+
+    <section class="card">
+      <div class="actions">
+        <button class="btn" onclick="runValidate()">Validate</button>
+        <button class="btn ghost" onclick="downloadProspectus()">Download Prospectus</button>
+        <button class="btn" style="background:var(--ok)" onclick="submitFiling()">Submit Filing</button>
+      </div>
+      <pre id="output"></pre>
+    </section>
+  </div>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $ = (id) => document.getElementById(id);
+const val = (id) => ($(id) ? $(id).value.trim() : '');
+const numOrU = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n; };
+const pctOrU = (v) => { const n = parseFloat(v); return isNaN(n) ? undefined : n / 100; };
+
+// ---------- multi-input: strategies / risks ----------
+function multiRow(container, value, placeholder) {
+  const div = document.createElement('div');
+  div.className = 'multi-item';
+  div.innerHTML = `<input placeholder="${placeholder}"><button class="btn danger" type="button" title="Remove">&times;</button>`;
+  div.querySelector('input').value = value || '';
+  div.querySelector('input').addEventListener('input', schedule);
+  div.querySelector('button').onclick = () => { div.remove(); schedule(); };
+  container.appendChild(div);
+}
+function addStrategy(v){ multiRow($('strategies'), v, 'e.g., Invests in derivatives for hedging'); }
+function addRisk(v){ multiRow($('risks'), v, 'e.g., Market risk'); }
+function collectMulti(id){ return [...$(id).querySelectorAll('input')].map(i=>i.value.trim()).filter(Boolean); }
+
+// ---------- performance rows ----------
+const PERIODS = ['1yr','3yr','5yr','10yr'];
+function buildPerf(){
+  $('perfBody').innerHTML = PERIODS.map((p,i)=>`<tr data-p="${p}">
+    <td>${p}</td>
+    <td><input data-k="annualReturn" type="number" step="0.01"></td>
+    <td><input data-k="volatility" type="number" step="0.01"></td>
+    <td><input data-k="sharpeRatio" type="number" step="0.01"></td>
+    <td><input data-k="standardDeviation" type="number" step="0.01"></td>
+  </tr>`).join('');
+  // sample defaults
+  const defaults = {'1yr':[14.2,16.1,1.05,15.8],'3yr':[11.8,15.2,0.92,14.9],'5yr':[10.4,14.6,0.85,14.1],'10yr':[9.1,13.9,0.78,13.5]};
+  $('perfBody').querySelectorAll('tr').forEach(tr=>{
+    const d = defaults[tr.dataset.p];
+    const ins = tr.querySelectorAll('input');
+    ins.forEach((inp,idx)=>{ inp.value = d[idx]; inp.addEventListener('input', schedule); });
+  });
+}
+function collectPerf(){
+  const out=[];
+  $('perfBody').querySelectorAll('tr').forEach(tr=>{
+    const row={period:tr.dataset.p};
+    let any=false;
+    tr.querySelectorAll('input').forEach(inp=>{
+      const k=inp.dataset.k;
+      const v = k==='sharpeRatio' ? numOrU(inp.value) : pctOrU(inp.value);
+      if(v!==undefined){ row[k]=v; any=true; }
+    });
+    if(any) out.push(row);
+  });
+  return out;
+}
+
+// ---------- fee / share classes ----------
+function addShareClass(data){
+  data = data || {};
+  const wrap = document.createElement('div');
+  wrap.className='subcard shareclass';
+  wrap.innerHTML = `
+    <button class="btn danger rm" type="button" title="Remove class">&times;</button>
+    <div class="row two">
+      <div class="field"><label>Share Class *</label><input data-k="shareClass" placeholder="e.g., Institutional"></div>
+      <div class="field"><label>&nbsp;</label></div>
+    </div>
+    <div class="row two">
+      <div class="field"><label>Net Expense Ratio %</label><input data-k="net" type="number" step="0.001" placeholder="0.45"></div>
+      <div class="field"><label>Gross Expense Ratio %</label><input data-k="gross" type="number" step="0.001" placeholder="0.65"></div>
+    </div>
+    <div class="row two">
+      <div class="field"><label>Waiver Description</label><input data-k="waiverDescription" placeholder="Adviser contractually waives fees..."></div>
+      <div class="field"><label>Waiver Expiration</label><input data-k="waiverExpiration" type="date"></div>
+    </div>
+    <div class="field">
+      <label>Breakpoints (sales load)</label>
+      <div class="bps"></div>
+      <button class="btn ghost mini" type="button">+ Add breakpoint</button>
+    </div>`;
+  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
+  wrap.querySelector('.field > button').onclick=()=>{ addBreakpoint(wrap.querySelector('.bps')); };
+  wrap.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
+  // hydrate
+  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
+  set('shareClass',data.shareClass); set('net',data.net); set('gross',data.gross);
+  set('waiverDescription',data.waiverDescription); set('waiverExpiration',data.waiverExpiration);
+  (data.breakpoints||[]).forEach(bp=>addBreakpoint(wrap.querySelector('.bps'),bp));
+  $('shareClasses').appendChild(wrap);
+}
+function addBreakpoint(container, bp){
+  bp=bp||{};
+  const row=document.createElement('div');
+  row.className='multi-item';
+  row.innerHTML=`<input data-k="threshold" type="number" placeholder="Investment $ (e.g. 1000000)"><input data-k="loadPercent" type="number" step="0.01" placeholder="Load %"><button class="btn danger" type="button">&times;</button>`;
+  row.querySelector('[data-k="threshold"]').value = bp.threshold ?? '';
+  row.querySelector('[data-k="loadPercent"]').value = bp.loadPercent ?? '';
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
+  row.querySelector('button').onclick=()=>{row.remove();schedule();};
+  container.appendChild(row);
+}
+function collectFees(){
+  return [...$('shareClasses').querySelectorAll('.shareclass')].map(w=>{
+    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
+    const fee={ shareClass:g('shareClass') };
+    const net=pctOrU(g('net')); if(net!==undefined) fee.netExpenseRatio=net;
+    const gross=pctOrU(g('gross')); if(gross!==undefined) fee.grossExpenseRatio=gross;
+    if(g('waiverDescription')) fee.waiverDescription=g('waiverDescription');
+    if(g('waiverExpiration')) fee.waiverExpiration=g('waiverExpiration');
+    const bps=[...w.querySelectorAll('.bps .multi-item')].map(r=>({
+      threshold:numOrU(r.querySelector('[data-k="threshold"]').value),
+      loadPercent:pctOrU(r.querySelector('[data-k="loadPercent"]').value)
+    })).filter(b=>b.threshold!==undefined);
+    if(bps.length) fee.breakpoints=bps;
+    return fee;
+  });
+}
+
+// ---------- managers ----------
+function addManager(data){
+  data=data||{};
+  const wrap=document.createElement('div');
+  wrap.className='subcard manager';
+  wrap.innerHTML=`
+    <button class="btn danger rm" type="button">&times;</button>
+    <div class="row two">
+      <div class="field"><label>Manager Name *</label><input data-k="name" placeholder="e.g., Jane Smith, CFA"></div>
+      <div class="field"><label>Tenure (years)</label><input data-k="tenureYears" type="number" step="0.1" placeholder="e.g., 6"></div>
+    </div>
+    <div class="field"><label>Bio / Business Experience</label><textarea data-k="bio" placeholder="Portfolio manager since 2019; previously..."></textarea></div>`;
+  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
+  wrap.querySelectorAll('input,textarea').forEach(i=>i.addEventListener('input',schedule));
+  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
+  set('name',data.name); set('tenureYears',data.tenureYears); set('bio',data.bio);
+  $('managers').appendChild(wrap);
+}
+function collectManagers(){
+  return [...$('managers').querySelectorAll('.manager')].map(w=>{
+    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
+    const m={name:g('name')};
+    if(g('bio')) m.bio=g('bio');
+    const t=numOrU(g('tenureYears')); if(t!==undefined) m.tenureYears=t;
+    return m;
+  }).filter(m=>m.name || m.bio);
+}
+
+// ---------- board ----------
+function addBoardMember(data){
+  data=data||{};
+  const wrap=document.createElement('div');
+  wrap.className='subcard boardm';
+  wrap.innerHTML=`
+    <button class="btn danger rm" type="button">&times;</button>
+    <div class="row two">
+      <div class="field"><label>Trustee Name</label><input data-k="name" placeholder="e.g., Robert Lee"></div>
+      <div class="field"><label>&nbsp;</label><div class="check"><input data-k="independent" type="checkbox"><label>Independent trustee</label></div></div>
+    </div>
+    <div class="field"><label>Material Relationships / Conflicts</label><input data-k="conflicts" placeholder="e.g., None / Partner at adviser's law firm"></div>`;
+  wrap.querySelector('.rm').onclick=()=>{wrap.remove();schedule();};
+  wrap.querySelectorAll('input').forEach(i=>i.addEventListener('input',schedule));
+  const set=(k,v)=>{const el=wrap.querySelector(`[data-k="${k}"]`); if(el&&v!==undefined)el.value=v;};
+  set('name',data.name); set('conflicts',data.conflicts);
+  if(data.independent) wrap.querySelector('[data-k="independent"]').checked=true;
+  $('board').appendChild(wrap);
+}
+function collectBoard(){
+  return [...$('board').querySelectorAll('.boardm')].map(w=>{
+    const g=(k)=>w.querySelector(`[data-k="${k}"]`).value.trim();
+    const m={ name:g('name'), independent:w.querySelector('[data-k="independent"]').checked };
+    if(g('conflicts')) m.conflicts=g('conflicts');
+    return m;
+  }).filter(m=>m.name);
+}
+
+// ---------- payload ----------
+function buildPayload(){
+  return {
+    basicInfo:{
+      fundName:val('fundName'), cik:val('cik'), ticker:val('ticker'),
+      objective:val('objective'),
+      strategies:collectMulti('strategies'),
+      principalRisks:collectMulti('risks')
+    },
+    riskReturnMetrics:{ performance:collectPerf() },
+    feeTables:collectFees(),
+    managers:collectManagers(),
+    portfolioMetrics:{
+      portfolioTurnover:pctOrU(val('turnover')),
+      distributionPolicy:val('distPolicy')||undefined
+    },
+    governance:{ boardMembers:collectBoard() },
+    prospectusDate:new Date(val('prospectusDate')||Date.now()).toISOString(),
+    shareClasses:collectFees().map(f=>f.shareClass).filter(Boolean)
+  };
+}
+
+// ---------- validation (real-time) ----------
+let timer=null;
+function schedule(){ clearTimeout(timer); timer=setTimeout(runValidate,400); }
+async function runValidate(){
+  try{
+    const res=await fetch('/api/v1/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
+    renderValidation(await res.json());
+  }catch(e){ /* network hiccup — ignore, will re-run on next edit */ }
+}
+function renderValidation(r){
+  const errs=r.errors||[], warns=r.warnings||[];
+  const st=$('status'), stt=$('statusText');
+  st.className='status '+(r.isValid?'ok':'err');
+  stt.textContent = r.isValid ? 'Ready to file — no blocking errors' : 'Deficiencies found';
+  $('errCount').textContent = errs.length+' error'+(errs.length===1?'':'s');
+  $('warnCount').textContent = warns.length+' warning'+(warns.length===1?'':'s');
+  const box=$('issues');
+  if(!errs.length && !warns.length){ box.innerHTML='<div class="clean">✓ No issues detected. All required N-1A items are present.</div>'; return; }
+  const item=(x,cls)=>`<div class="issue ${cls}"><span class="code">${x.code} · ${x.field}</span>${x.message}</div>`;
+  box.innerHTML = errs.map(x=>item(x,'e')).join('') + warns.map(x=>item(x,'w')).join('');
+}
+
+// ---------- actions ----------
+async function downloadProspectus(){
+  const res=await fetch('/api/v1/generate-prospectus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
+  if(!res.ok){ showOutput(await res.text()); return; }
+  const blob=await res.blob();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(val('fundName')||'prospectus').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-prospectus.html';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function submitFiling(){
+  const btn=event.target; const old=btn.innerHTML; btn.innerHTML='<span class="spin"></span>Filing...';
+  try{
+    const res=await fetch('/api/v1/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
+    const data=await res.json();
+    if(!res.ok){
+      showOutput('❌ FILING BLOCKED\n\n'+JSON.stringify(data,null,2));
+    }else{
+      showOutput('✅ FILING SUBMITTED\n\nAccession: '+data.submission.accessionNumber+'\nStatus: '+data.submission.status+'\niXBRL facts tagged: '+data.ixbrlFacts+'\nWarnings: '+(data.validationWarnings||[]).length+'\n\n'+JSON.stringify(data.submission,null,2));
+    }
+  }catch(e){ showOutput('Network error: '+e.message); }
+  finally{ btn.innerHTML=old; }
+}
+function showOutput(t){ const o=$('output'); o.style.display='block'; o.textContent=t; o.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+// ---------- init ----------
+// Delegated listeners so every field (including the static top-level inputs)
+// triggers real-time validation, not just dynamically-added rows.
+document.addEventListener('input', schedule);
+document.addEventListener('change', schedule);
+
+function init(){
+  $('prospectusDate').value = new Date().toISOString().slice(0,10);
+  ['Invests primarily in large-cap U.S. equity securities','May use index futures and options for efficient portfolio management','Invests up to 20% in foreign securities including emerging markets'].forEach(addStrategy);
+  ['Market risk','Equity securities risk','Derivatives risk','Foreign and emerging markets risk'].forEach(addRisk);
+  buildPerf();
+  addShareClass({shareClass:'Institutional',net:0.45,gross:0.65,waiverDescription:'The adviser has contractually agreed to waive fees through the date below.',waiverExpiration: new Date(Date.now()+400*864e5).toISOString().slice(0,10)});
+  addShareClass({shareClass:'Investor',net:0.70,gross:0.85,waiverDescription:'The adviser has contractually agreed to waive fees through the date below.',waiverExpiration: new Date(Date.now()+400*864e5).toISOString().slice(0,10)});
+  addManager({name:'Jane Smith, CFA',tenureYears:6,bio:'Portfolio manager since 2019; previously senior analyst at a global asset manager for 8 years.'});
+  addManager({name:'Michael Chen',tenureYears:3,bio:'Co-portfolio manager since 2022; 12 years of quantitative research experience.'});
+  addBoardMember({name:'Robert Lee',independent:true,conflicts:'None'});
+  addBoardMember({name:'Susan Park',independent:true,conflicts:'None'});
+  addBoardMember({name:'David Nguyen',independent:false,conflicts:'Managing Director of the Fund\'s investment adviser.'});
+  runValidate();
+}
+init();
+</script>
+</body>
+</html>
