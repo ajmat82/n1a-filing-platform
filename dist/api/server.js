@@ -6,11 +6,123 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createServer = createServer;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const fs_1 = require("fs");
-const path_1 = require("path");
 const ixbrl_generator_1 = require("../xbrl/ixbrl-generator");
 const deficiency_checker_1 = require("../validation/deficiency-checker");
 const client_1 = require("../edgar/client");
+const DASHBOARD_HTML = `<!DOCTYPE html>
+<html>
+<head>
+  <title>N-1A Filing Platform</title>
+  <style>
+    body { font-family: Arial; max-width: 900px; margin: 50px auto; padding: 20px; background: #f9f9f9; }
+    h1 { color: #333; }
+    p { color: #666; }
+    .form-group { margin: 15px 0; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    button { background: #007bff; color: white; padding: 10px 20px; margin: 5px 5px 5px 0; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .result { background: #fff; padding: 15px; margin-top: 20px; border-radius: 4px; border: 1px solid #ddd; white-space: pre-wrap; font-family: monospace; font-size: 12px; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>🚀 N-1A Filing Platform</h1>
+  <p>SEC Form N-1A filing automation for ETFs</p>
+
+  <div class="form-group">
+    <label>Fund Name:</label>
+    <input type="text" id="fundName" placeholder="e.g., Growth ETF" value="Sample Growth Fund">
+  </div>
+
+  <div class="form-group">
+    <label>CIK:</label>
+    <input type="text" id="cik" placeholder="e.g., 0001234567" value="0001234567">
+  </div>
+
+  <div class="form-group">
+    <label>Investment Objective:</label>
+    <input type="text" id="objective" placeholder="e.g., Capital appreciation" value="Capital appreciation">
+  </div>
+
+  <div class="form-group">
+    <label>Net Expense Ratio (%):</label>
+    <input type="number" id="expenseRatio" placeholder="e.g., 0.15" value="0.15" step="0.01">
+  </div>
+
+  <button onclick="validateFund()">✅ Validate Fund</button>
+  <button onclick="generateiXBRL()">📄 Generate iXBRL</button>
+  <button onclick="submitFiling()">🗂️ Submit Filing</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function validateFund() {
+      const data = {
+        basicInfo: {
+          fundName: document.getElementById('fundName').value,
+          cik: document.getElementById('cik').value,
+          objective: document.getElementById('objective').value,
+          strategies: ['Growth investing'],
+          principalRisks: ['Market risk'],
+          managerName: 'Fund Manager'
+        },
+        riskReturnMetrics: {},
+        feeTables: [{ shareClass: 'Class A', expenseRatio: parseFloat(document.getElementById('expenseRatio').value) / 100, grossExpenseRatio: 0.002 }],
+        prospectusDate: new Date().toISOString(),
+        shareClasses: ['Class A']
+      };
+
+      const res = await fetch('/api/v1/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      document.getElementById('result').innerHTML = '<div class="result ' + (result.isValid ? 'success' : 'error') + '">✅ VALID\\n' + JSON.stringify(result, null, 2) + '</div>';
+    }
+
+    async function generateiXBRL() {
+      const data = {
+        basicInfo: {
+          fundName: document.getElementById('fundName').value,
+          cik: document.getElementById('cik').value,
+          objective: document.getElementById('objective').value,
+          strategies: ['Growth investing'],
+          principalRisks: ['Market risk'],
+          managerName: 'Fund Manager'
+        },
+        riskReturnMetrics: { oneYearReturn: 0.12 },
+        feeTables: [{ shareClass: 'Class A', expenseRatio: 0.0015, grossExpenseRatio: 0.002 }],
+        prospectusDate: new Date().toISOString(),
+        shareClasses: ['Class A']
+      };
+
+      const res = await fetch('/api/v1/generate-ixbrl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      document.getElementById('result').innerHTML = '<div class="result success">📄 iXBRL GENERATED\\n' + JSON.stringify(result, null, 2) + '</div>';
+    }
+
+    async function submitFiling() {
+      const data = {
+        basicInfo: {
+          fundName: document.getElementById('fundName').value,
+          cik: document.getElementById('cik').value,
+          objective: document.getElementById('objective').value,
+          strategies: ['Growth investing'],
+          principalRisks: ['Market risk'],
+          managerName: 'Fund Manager'
+        },
+        riskReturnMetrics: { oneYearReturn: 0.12 },
+        feeTables: [{ shareClass: 'Class A', expenseRatio: 0.0015, grossExpenseRatio: 0.002 }],
+        prospectusDate: new Date().toISOString(),
+        shareClasses: ['Class A']
+      };
+
+      const res = await fetch('/api/v1/file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      document.getElementById('result').innerHTML = '<div class="result success">🗂️ FILING SUBMITTED\\n' + JSON.stringify(result, null, 2) + '</div>';
+    }
+  </script>
+</body>
+</html>`;
 function createServer() {
     const app = (0, express_1.default)();
     app.use((0, cors_1.default)());
@@ -20,14 +132,8 @@ function createServer() {
     const edgarClient = new client_1.EDGARClient();
     // Serve dashboard
     app.get('/', (req, res) => {
-        try {
-            const html = (0, fs_1.readFileSync)((0, path_1.join)(__dirname, '../dashboard.html'), 'utf-8');
-            res.set('Content-Type', 'text/html');
-            res.send(html);
-        }
-        catch (e) {
-            res.send('<h1>N-1A Platform</h1><p>Dashboard not available</p>');
-        }
+        res.set('Content-Type', 'text/html');
+        res.send(DASHBOARD_HTML);
     });
     // Health check
     app.get('/health', (req, res) => {
